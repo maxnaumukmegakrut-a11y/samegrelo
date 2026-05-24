@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=5.0, user-scalable=yes">
+  <title>Галерея | Кафе «Самегрело»</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --deep-brown: #1E1410; --gold: #D4AF37; --cream: #F5E9DB;
+      --light-cream: #FFF6EC; --text-muted: #B7A692;
+      --radius-xl: 24px; --font-heading: 'Playfair Display', serif; --font-body: 'Inter', sans-serif;
+      --transition: 0.3s ease;
+    }
+    html { scroll-behavior: smooth; background-color: var(--deep-brown); }
+    body { font-family: var(--font-body); background-color: var(--deep-brown); color: var(--cream); line-height: 1.6; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+    .container { width: 100%; max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+      padding: 16px 32px; border-radius: 50px; font-weight: 600; font-size: 1rem;
+      background: transparent; border: 1px solid transparent; cursor: pointer;
+      transition: all var(--transition); white-space: nowrap; backdrop-filter: blur(4px);
+    }
+    .btn-primary { background: linear-gradient(135deg, #E5C76B 0%, #C59B3C 100%); color: #1E1410; border: none; }
+    .btn-primary:hover { background: linear-gradient(135deg, #F3D87A 0%, #D4AF37 100%); transform: translateY(-2px); }
+
+    /* Header */
+    .site-header { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; padding: 16px 0; background: rgba(30, 20, 16, 0.8); backdrop-filter: blur(18px); border-bottom: 1px solid rgba(255,255,240,0.06); }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; }
+    .logo { font-size: 1.9rem; font-weight: 700; color: var(--gold); }
+    .back-link { color: var(--gold); font-weight: 500; }
+
+    /* Gallery Page */
+    .gallery-page { padding: 130px 0 80px; }
+    .section-title { font-family: var(--font-heading); font-size: clamp(2.2rem, 6vw, 3.2rem); color: var(--light-cream); text-align: center; margin-bottom: 1.8rem; }
+
+    /* Slider Styles */
+    .slider-container { position: relative; width: 100%; max-width: 900px; margin: 0 auto 40px; border-radius: var(--radius-xl); overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+    .slider { display: flex; transition: transform 0.5s ease-in-out; }
+    .slider img { width: 100%; flex-shrink: 0; object-fit: cover; aspect-ratio: 4/3; }
+    .slider-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); color: #fff; border: none; font-size: 2rem; padding: 10px 15px; cursor: pointer; z-index: 10; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; transition: background 0.3s; }
+    .slider-btn:hover { background: rgba(0,0,0,0.8); }
+    .slider-btn.prev { left: 15px; }
+    .slider-btn.next { right: 15px; }
+    .slider-dots { display: flex; justify-content: center; gap: 10px; margin-top: 15px; }
+    .slider-dot { width: 12px; height: 12px; border-radius: 50%; background: rgba(255,255,240,0.3); cursor: pointer; transition: background 0.3s; border: none; }
+    .slider-dot.active { background: var(--gold); }
+
+    .back-btn { display: block; text-align: center; margin: 40px 0; }
+
+    @media (max-width: 768px) {
+      .slider-container { border-radius: 0; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">Самегрело</a>
+      <a href="index.html" class="back-link">← На главную</a>
+    </div>
+  </header>
+
+  <main class="gallery-page container">
+    <h2 class="section-title">Атмосфера «Самегрело»</h2>
+    
+    <div class="slider-container" id="sliderContainer">
+      <div class="slider" id="slider"></div>
+      <button class="slider-btn prev" id="prevBtn">❮</button>
+      <button class="slider-btn next" id="nextBtn">❯</button>
+    </div>
+    <div class="slider-dots" id="sliderDots"></div>
+
+    <div class="back-btn"><a href="index.html" class="btn btn-primary">← Вернуться на главную</a></div>
+  </main>
+
+  <script>
+    (function() {
+      const images = [
+        { src: './32.jpg', alt: 'Вывеска кафе Самегрело' },
+        { src: './33.jpg', alt: 'Длинный накрытый стол внутри кафе' },
+        { src: './34.jpg', alt: 'Вид на кафе с улицы' },
+        { src: './35.jpg', alt: 'Вход в кафе' }
+      ];
+
+      const slider = document.getElementById('slider');
+      const dotsContainer = document.getElementById('sliderDots');
+      const prevBtn = document.getElementById('prevBtn');
+      const nextBtn = document.getElementById('nextBtn');
+      
+      let currentIndex = 0;
+
+      function initSlider() {
+        if (!slider || !dotsContainer) return;
+        
+        slider.innerHTML = images.map(img => `<img src="${img.src}" alt="${img.alt}" loading="lazy">`).join('');
+        dotsContainer.innerHTML = images.map((_, i) => `<button class="slider-dot ${i === 0 ? 'active' : ''}" data-index="${i}"></button>`).join('');
+        
+        document.querySelectorAll('.slider-dot').forEach(dot => {
+          dot.addEventListener('click', function() {
+            goToSlide(parseInt(this.dataset.index));
+          });
+        });
+      }
+
+      function goToSlide(index) {
+        if (!slider) return;
+        currentIndex = index;
+        slider.style.transform = `translateX(-${currentIndex * 100}%)`;
+        
+        document.querySelectorAll('.slider-dot').forEach((dot, i) => {
+          dot.classList.toggle('active', i === currentIndex);
+        });
+      }
+
+      if (prevBtn) prevBtn.addEventListener('click', () => {
+        currentIndex = (currentIndex - 1 + images.length) % images.length;
+        goToSlide(currentIndex);
+      });
+
+      if (nextBtn) nextBtn.addEventListener('click', () => {
+        currentIndex = (currentIndex + 1) % images.length;
+        goToSlide(currentIndex);
+      });
+
+      // Swipe support
+      let touchStartX = 0;
+      let touchEndX = 0;
+      const sliderContainer = document.getElementById('sliderContainer');
+      
+      if (sliderContainer) {
+        sliderContainer.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; });
+        sliderContainer.addEventListener('touchend', (e) => {
+          touchEndX = e.changedTouches[0].screenX;
+          if (touchStartX - touchEndX > 50) nextBtn.click();
+          if (touchEndX - touchStartX > 50) prevBtn.click();
+        });
+      }
+
+      initSlider();
+    })();
+  </script>
+</body>
+</html>
